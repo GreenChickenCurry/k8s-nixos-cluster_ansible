@@ -31,7 +31,7 @@
 ## Деплой
 Клонируем репозиторий следующим образом:
 ```sh
-  git clone https://github.com/GreenChickenCurry/swarm-nixos-cluster_ansible.git ansible
+  git clone https://github.com/GreenChickenCurry/k8s-nixos-cluster_ansible.git ansible
 ```
 Далее,
 ```sh
