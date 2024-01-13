@@ -1,0 +1,43 @@
+- name: Preparing Kubeconfig (For master_node_00)
+  hosts: master_node_00
+  vars:
+    ansible_python_interpreter: /run/current-system/sw/bin/python
+  tasks:
+
+    - name: Make Directory For Kubeconfig
+      ansible.builtin.command: "mkdir /root/.kube"
+
+    - name: Link Kubeconfig To Home(Root) Directory 
+      ansible.builtin.command: "ln -s /etc/kubernetes/cluster-admin.kubeconfig /root/.kube/config"
+
+    - name: Copy Token File To Root Directory
+      ansible.builtin.command:
+        "cp /var/lib/kubernetes/secrets/apitoken.secret /root/k8s.token"
+      
+- name: Join The K8s Cluster (For Slaves)
+  hosts: slaves
+  vars:
+    ansible_python_interpreter: /run/current-system/sw/bin/python
+  tasks:
+
+    - name: Transfer File From Master Node To Other Nodes
+      synchronize:
+        src: /root/k8s.token
+        dest: /root/k8s.token
+        mode: push
+      delegate_to: master_node_00
+    
+    - name: Make Our Nodes Join The Cluster
+      ansible.builtin.shell: cat /root/k8s.token | nixos-kubernetes-node-join
+      
+    - name: Delete Token File
+      ansible.builtin.command: rm /root/k8s.token
+
+- name: Delete Token File (For master_node_00)
+  hosts: master_node_00
+  vars:
+    ansible_python_interpreter: /run/current-system/sw/bin/python
+  tasks:
+
+    - name: Delete Token File
+      ansible.builtin.command: rm /root/k8s.token      

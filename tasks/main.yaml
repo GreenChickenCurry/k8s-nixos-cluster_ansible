@@ -1,0 +1,3 @@
+- ansible.builtin.import_playbook: 01_storage.yaml
+- ansible.builtin.import_playbook: 02_install.yaml
+- ansible.builtin.import_playbook: 03_k8s.yaml

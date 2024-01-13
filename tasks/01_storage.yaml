@@ -1,0 +1,29 @@
+- name: Preparing Partitions (For Cluster)
+  hosts: cluster
+  tasks:
+    - name: Make Partition Labels
+      ansible.builtin.command: "parted -s {{ main_disk }} -- mklabel gpt"
+      
+    - name: Create Boot Partition
+      ansible.builtin.command: "parted -s {{ main_disk }} -- mkpart '/boot' 0 1GiB"
+      
+    - name: Create Root Partition
+      ansible.builtin.command: "parted -s {{ main_disk }} -- mkpart '/root' 1GiB 100%"
+
+    - name: Set Partition On Boot Partition
+      ansible.builtin.command: "parted -s {{ main_disk }} -- set 1 esp on"
+      
+    - name: Applying Fat32 Filesystem To Boot Partition
+      ansible.builtin.command: "mkfs.vfat -F 32 {{ main_disk }}1"
+      
+    - name: Applying Ext4 Filesystem To Root Partition
+      ansible.builtin.command: "mkfs.ext4 {{ main_disk }}2"
+      
+    - name: Mount The Root Partition
+      ansible.builtin.command: "mount {{ main_disk }}2 /mnt"
+
+    - name: Create A Folder For The Boot Partition
+      ansible.builtin.command: "mkdir -p /mnt/boot/efi"
+
+    - name: Mount The Boot Partition
+      ansible.builtin.command: "mount {{ main_disk }}1 /mnt/boot/efi"

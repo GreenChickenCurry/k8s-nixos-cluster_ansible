@@ -1,0 +1,21 @@
+masters:
+  hosts:
+    master_node_00:
+      ansible_host: 192.168.100.70
+slaves:
+  hosts:
+    slave_node_00 :
+      ansible_host: 192.168.100.80
+    slave_node_01 :
+      ansible_host: 192.168.100.81
+
+cluster:
+  children:
+    masters:
+    slaves :
+  vars:
+    ansible_user           : root
+    ansible_password       : q
+    main_disk              : /dev/sda
+    ansible_ssh_common_args:
+      "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"

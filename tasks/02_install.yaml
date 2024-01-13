@@ -1,0 +1,47 @@
+- name: Preparing NixOs Config (For Cluster)
+  hosts: cluster
+  tasks:
+    
+    - name: Generate NixOs Config
+      ansible.builtin.command: "nixos-generate-config --root /mnt"
+
+    - name: Delete The Main Configuration File
+      ansible.builtin.command: "rm /mnt/etc/nixos/configuration.nix"
+
+- name: Copy The Config (For master_node_00)
+  hosts: master_node_00
+  tasks:
+
+    - name: Copy (1)
+      ansible.builtin.copy:
+        src: "{{ inventory_dir }}/nodes/masters/master_node_00/"
+        dest: "/mnt/etc/nixos/"
+
+- name: Copy The Config (For slave_node_00)
+  hosts: slave_node_00
+  tasks:
+
+    - name: Copy (2)
+      ansible.builtin.copy:
+        src: "{{ inventory_dir }}/nodes/slaves/slave_node_00/"
+        dest: "/mnt/etc/nixos/"
+
+- name: Copy The Config (For slave_node_01)
+  hosts: slave_node_01
+  tasks:
+
+    - name: Copy (3)
+      ansible.builtin.copy:
+        src: "{{ inventory_dir }}/nodes/slaves/slave_node_01/"
+        dest: "/mnt/etc/nixos/"
+
+- name: Installing The Operating System (For Cluster)
+  hosts: cluster
+  tasks:
+    
+    - name: Install NixOs
+      ansible.builtin.command: "nixos-install --no-root-password"
+
+    - name: Reboot A Slow Machine That Might Have Lots Of Updates To Apply
+      ansible.builtin.reboot:
+        search_paths: ["/run/current-system/sw/bin"]

@@ -1,0 +1,39 @@
+- name: Create A Swarm (For master_node_00)
+  hosts: master_node_00
+  vars:
+    ansible_python_interpreter: /run/current-system/sw/bin/python
+  tasks:
+    
+    - name: Swarm Init
+      ansible.builtin.command:
+        "docker swarm init --advertise-addr {{ hostvars['master_node_00'].ansible_host }}"
+
+    - name: Create A Swarm Token File
+      ansible.builtin.command: touch /root/swarm.token
+
+    - name: Write The Token In Swarm Token File
+      ansible.builtin.shell: docker swarm join-token manager -q > swarm.token
+
+
+      
+- name: Join The Docker Cluster (For Slaves)
+  hosts: slaves
+  vars:
+    ansible_python_interpreter: /run/current-system/sw/bin/python
+  tasks:
+
+    - name: Transfer Swarm Token File From Master Node To Other Nodes
+      synchronize:
+        src: /root/swarm.token
+        dest: /root/swarm.token
+        mode: push
+      delegate_to: master_node_00
+
+    - name: Write The Token Into A Variable
+      ansible.builtin.shell: cat /root/swarm.token
+      register: cat_token
+      
+      
+    - name: Make Our Nodes Join The Cluster
+      ansible.builtin.command:
+        "docker swarm join --token {{ cat_token.stdout }} {{ hostvars['master_node_00'].ansible_host }}:2377"
